@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dansar WhatsApp Dashboard</title>
+  <link rel="stylesheet" href="/widget.css" />
+  <style>
+    body {
+      font-family: "Poppins", sans-serif;
+      margin: 0;
+      background-color: #f6f7fb;
+      color: #333;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      height: 100vh;
+      padding: 20px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    header h1 {
+      font-size: 1.8rem;
+      color: #075e54;
+      margin-bottom: 5px;
+    }
+
+    .status {
+      background: #25d366;
+      color: white;
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-weight: 500;
+    }
+
+    .chat-log {
+      width: 100%;
+      max-width: 600px;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      padding: 15px;
+      height: 65vh;
+      overflow-y: auto;
+      margin-bottom: 20px;
+    }
+
+    .message {
+      margin-bottom: 10px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .message .sender {
+      font-weight: bold;
+      margin-bottom: 3px;
+      color: #075e54;
+    }
+
+    .message .text {
+      background: #e8f5e9;
+      border-radius: 10px;
+      padding: 10px;
+      display: inline-block;
+      max-width: 80%;
+    }
+
+    .input-area {
+      display: flex;
+      gap: 10px;
+      width: 100%;
+      max-width: 600px;
+    }
+
+    .input-area input {
+      flex: 1;
+      padding: 12px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      outline: none;
+      font-size: 1rem;
+    }
+
+    .input-area button {
+      background-color: #25d366;
+      border: none;
+      color: white;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    .input-area button:hover {
+      background-color: #128c7e;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Dansar WhatsApp Dashboard</h1>
+    <div class="status">🟢 Connected</div>
+  </header>
+
+  <div class="chat-log" id="chatLog">
+    <div class="message">
+      <div class="sender">System</div>
+      <div class="text">Welcome to Dansar Chat! You can send and receive WhatsApp messages here.</div>
+    </div>
+  </div>
+
+  <div class="input-area">
+    <input type="text" id="userMessage" placeholder="Type a message..." />
+    <button id="sendMessage">Send</button>
+  </div>
+
+  <script>
+    const chatLog = document.getElementById("chatLog");
+    const sendBtn = document.getElementById("sendMessage");
+    const userMessage = document.getElementById("userMessage");
+
+    // Add a new message to the chat log
+    function addMessage(sender, text) {
+      const msg = document.createElement("div");
+      msg.classList.add("message");
+      msg.innerHTML = `<div class="sender">${sender}</div><div class="text">${text}</div>`;
+      chatLog.appendChild(msg);
+      chatLog.scrollTop = chatLog.scrollHeight;
+    }
+
+    sendBtn.addEventListener("click", async () => {
+      const text = userMessage.value.trim();
+      if (!text) return;
+      addMessage("You", text);
+      userMessage.value = "";
+
+      try {
+        const res = await fetch("/api/whatsapp/send", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message: text }),
+        });
+        const data = await res.json();
+        if (data.success) addMessage("Dansar Bot", data.reply || "Message sent successfully!");
+        else addMessage("Error", "Failed to send message.");
+      } catch (err) {
+        addMessage("Error", "Server error or WhatsApp API unreachable.");
+      }
+    });
+  </script>
+</body>
+</html>
